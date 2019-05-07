@@ -56,7 +56,7 @@ Usage
 ```php
 $filePath = 'path/to/huge-json-file.json';
 
-$parser = new Parser($filePath);
+$parser = new \HugeJsonCollectionStreamingParser\Parser($filePath);
 
 while ($parser->next()) {
     $item = $parser->current();
