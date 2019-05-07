@@ -1,0 +1,10 @@
+version: '3'
+services:
+  hjsp_apache:
+    image: webdevops/php-apache-dev:7.0
+    volumes:
+      - ../:/app
+    environment:
+      TZ: Asia/Tokyo
+      WEB_DOCUMENT_ROOT: /app
+      PHP_DEBUGGER: none

@@ -1,0 +1,25 @@
+{
+    "name": "su/huge-json-collection-streaming-parser",
+    "description": "A streaming parser for huge JSON in PHP.",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "su",
+            "email": "yzf.hiro@gmail.com"
+        }
+    ],
+    "require": {
+      "php": "^7.0",
+      "ext-json": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "HugeJsonCollectionStreamingParser\\": "src",
+            "HugeJsonCollectionStreamingParser\\Test\\": "tests"
+        }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^6.5"
+    }
+}

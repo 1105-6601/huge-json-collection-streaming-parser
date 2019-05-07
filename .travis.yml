@@ -1,0 +1,13 @@
+language: php
+php:
+  - 7.0
+
+before_script:
+  - composer install --optimize-autoloader --no-suggest --quiet
+
+script:
+  - phpunit
+
+cache:
+  directories:
+    - vendor/
