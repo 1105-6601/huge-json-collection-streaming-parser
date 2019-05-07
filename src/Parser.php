@@ -69,6 +69,7 @@ class Parser
     public function next(): bool
     {
         if ($this->documentEnded) {
+            fclose($this->stream);
             return false;
         }
 
