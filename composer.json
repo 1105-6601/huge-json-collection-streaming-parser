@@ -1,5 +1,5 @@
 {
-    "name": "su/huge-json-collection-streaming-parser",
+    "name": "suemitsu/huge-json-collection-streaming-parser",
     "description": "A streaming parser for huge JSON in PHP.",
     "type": "library",
     "license": "MIT",
