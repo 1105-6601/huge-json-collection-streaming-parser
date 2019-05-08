@@ -211,6 +211,11 @@ class Parser
 
         while (true) {
             $char = stream_get_line($this->stream, 2);
+
+            if ($char === false) {
+                throw new \RuntimeException('File is empty.');
+            }
+
             $char = trim($char);
             $chars .= $char;
 
