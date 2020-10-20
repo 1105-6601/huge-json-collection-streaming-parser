@@ -57,6 +57,12 @@ class Parser
 
     /**
      * For debugging
+     * @var bool
+     */
+    private $debug = false;
+
+    /**
+     * For debugging
      * @var int
      */
     private $debugCounter = 0;
@@ -115,8 +121,6 @@ class Parser
 
                 if ($char === $singleBackSlash) {
                     $backSlashArray[] = $char;
-                } else {
-                    $backSlashArray = [];
                 }
 
                 switch ($char) {
@@ -190,6 +194,10 @@ class Parser
                         break;
                 }
 
+                if ($char !== $singleBackSlash) {
+                    $backSlashArray = [];
+                }
+
                 if ($state === self::STATE_COMMA_DETECTED) {
                     break 2;
                 }
@@ -205,6 +213,12 @@ class Parser
 
     public function current(): array
     {
+        if ($this->debug) {
+            echo sprintf('Memory usage: %s', number_format(memory_get_usage())), "\n";
+        }
+
+        $this->rescueTheBufferStructure();
+
         $result = json_decode($this->buffer, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
@@ -232,6 +246,11 @@ class Parser
         return $this->currentPosition;
     }
 
+    public function enableDebug(): void
+    {
+        $this->debug = true;
+    }
+
     private function verifyStructure()
     {
         $chars = '';
@@ -246,10 +265,20 @@ class Parser
             }
         }
 
-        if (substr($chars, 0, 2) !== '[{') {
+        $first2Bytes = substr($chars, 0, 2);
+        if ($first2Bytes !== '[{') {
             throw new RuntimeException('Invalid JSON structure. Document must start with \'[{\'');
         }
 
         rewind($this->stream);
+    }
+
+    private function rescueTheBufferStructure(): void
+    {
+        $this->buffer = mb_convert_encoding($this->buffer, 'UTF-8', 'UTF-8');
+
+        if (mb_substr($this->buffer, 0, 1) === ',') {
+            $this->buffer = mb_substr($this->buffer, 1);
+        }
     }
 }
