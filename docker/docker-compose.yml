@@ -1,7 +1,7 @@
 version: '3'
 services:
   hjsp_apache:
-    image: webdevops/php-apache-dev:7.0
+    image: webdevops/php-apache-dev:7.4
     volumes:
       - ../:/app
     environment:

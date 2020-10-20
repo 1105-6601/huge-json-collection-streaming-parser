@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace HugeJsonCollectionStreamingParser;
 
+use RuntimeException;
+
 class Parser
 {
     const STATE_DEFAULT        = 0;
@@ -53,10 +55,22 @@ class Parser
      */
     private $count = 0;
 
+    /**
+     * For debugging
+     * @var int
+     */
+    private $debugCounter = 0;
+
+    /**
+     * For debugging
+     * @var int
+     */
+    private $debugCounter2 = 0;
+
     public function __construct(string $filePath, int $bufferSize = 8192, string $lineEnding = '')
     {
         if (!is_file($filePath)) {
-            throw new \RuntimeException('Specified file is not exist.');
+            throw new RuntimeException('Specified file is not exist.');
         }
 
         $this->stream     = fopen($filePath, 'r');
@@ -77,8 +91,8 @@ class Parser
             fseek($this->stream, $this->currentPosition);
         }
 
+        $charArray            = [];
         $prevChar             = '';
-        $prevPrevChar         = '';
         $inUserDefinitionArea = false;
         $state                = self::STATE_DEFAULT;
         $level                = 0;
@@ -96,7 +110,8 @@ class Parser
 
             for ($i = 0; $i < $byteLen; ++$i) {
 
-                $char = $line[$i];
+                $char        = $line[$i];
+                $charArray[] = $char;
 
                 switch ($char) {
                     case '[':
@@ -151,10 +166,30 @@ class Parser
                         if (!$inUserDefinitionArea) {
                             $inUserDefinitionArea = true;
                         } else {
-                            if ($prevChar !== '\\' || sprintf('%s%s', $prevPrevChar, $prevChar) === '\\\\') {
-                                $inUserDefinitionArea = false;
+                            $inUserDefinitionArea = false;
+                            $singleBackSlash      = '\\';
+
+                            if ($prevChar === $singleBackSlash) {
+                                $slashCount = 0;
+                                foreach (array_reverse($charArray) as $idx => $c) {
+                                    if ($idx === 0) {
+                                        continue;
+                                    }
+                                    if ($c === '\\') {
+                                        $slashCount++;
+                                    } else {
+                                        break;
+                                    }
+                                }
+
+                                if ($slashCount % 2 === 1) {
+                                    $inUserDefinitionArea = true;
+                                } else {
+                                    $inUserDefinitionArea = false;
+                                }
                             }
                         }
+
                         $this->buffer .= $char;
                         break;
                     default:
@@ -166,8 +201,7 @@ class Parser
                     break 2;
                 }
 
-                $prevPrevChar = $prevChar;
-                $prevChar     = $char;
+                $prevChar = $char;
             }
         }
 
@@ -180,11 +214,11 @@ class Parser
     {
         $result = json_decode($this->buffer, true);
 
-        $this->buffer = '';
-
         if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new \RuntimeException(sprintf('JSON parse failed. Position: %s, Reason: %s', $this->getCurrentPosition(), json_last_error_msg()));
+            throw new RuntimeException(sprintf('JSON parse failed. Position: %s, Reason: %s', $this->getCurrentPosition(), json_last_error_msg()));
         }
+
+        $this->buffer = '';
 
         return $result;
     }
@@ -210,13 +244,8 @@ class Parser
         $chars = '';
 
         while (true) {
-            $char = stream_get_line($this->stream, 2);
-
-            if ($char === false) {
-                throw new \RuntimeException('File is empty.');
-            }
-
-            $char = trim($char);
+            $char  = stream_get_line($this->stream, 2);
+            $char  = trim($char);
             $chars .= $char;
 
             if (strlen($chars) >= 2) {
@@ -225,7 +254,7 @@ class Parser
         }
 
         if (substr($chars, 0, 2) !== '[{') {
-            throw new \RuntimeException('Invalid JSON structure. Document must start with \'[{\'');
+            throw new RuntimeException('Invalid JSON structure. Document must start with \'[{\'');
         }
 
         rewind($this->stream);
