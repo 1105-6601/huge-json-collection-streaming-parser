@@ -91,7 +91,8 @@ class Parser
             fseek($this->stream, $this->currentPosition);
         }
 
-        $charArray            = [];
+        $singleBackSlash      = '\\';
+        $backSlashArray       = [];
         $prevChar             = '';
         $inUserDefinitionArea = false;
         $state                = self::STATE_DEFAULT;
@@ -110,8 +111,13 @@ class Parser
 
             for ($i = 0; $i < $byteLen; ++$i) {
 
-                $char        = $line[$i];
-                $charArray[] = $char;
+                $char = $line[$i];
+
+                if ($char === $singleBackSlash) {
+                    $backSlashArray[] = $char;
+                } else {
+                    $backSlashArray = [];
+                }
 
                 switch ($char) {
                     case '[':
@@ -167,22 +173,9 @@ class Parser
                             $inUserDefinitionArea = true;
                         } else {
                             $inUserDefinitionArea = false;
-                            $singleBackSlash      = '\\';
 
                             if ($prevChar === $singleBackSlash) {
-                                $slashCount = 0;
-                                foreach (array_reverse($charArray) as $idx => $c) {
-                                    if ($idx === 0) {
-                                        continue;
-                                    }
-                                    if ($c === '\\') {
-                                        $slashCount++;
-                                    } else {
-                                        break;
-                                    }
-                                }
-
-                                if ($slashCount % 2 === 1) {
+                                if (count($backSlashArray) % 2 === 1) {
                                     $inUserDefinitionArea = true;
                                 } else {
                                     $inUserDefinitionArea = false;
