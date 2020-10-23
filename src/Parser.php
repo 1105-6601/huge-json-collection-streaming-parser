@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace HugeJsonCollectionStreamingParser;
 
+use HugeJsonCollectionStreamingParser\Exception\DocumentIsEmptyException;
+use HugeJsonCollectionStreamingParser\Exception\DocumentIsInvalidFormatException;
 use RuntimeException;
 
 class Parser
@@ -266,8 +268,12 @@ class Parser
         }
 
         $first2Bytes = substr($chars, 0, 2);
+        if ($first2Bytes === '[]') {
+            throw new DocumentIsEmptyException();
+        }
+
         if ($first2Bytes !== '[{') {
-            throw new RuntimeException('Invalid JSON structure. Document must start with \'[{\'');
+            throw new DocumentIsInvalidFormatException('Invalid JSON structure. Document must start with \'[{\'');
         }
 
         rewind($this->stream);
